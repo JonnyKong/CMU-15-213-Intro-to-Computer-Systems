@@ -300,67 +300,38 @@ int bitParity(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  /* Convert number to positive-1, e.g. -5 -> 4, -128 -> 127 */
-  int sign_mask = (x >> 31) & 1;
-  int result = 0;
-  int maybe_zero;
-  int first_zero;
-  int is_zero;
-  sign_mask |= sign_mask << 1;
-  sign_mask |= sign_mask << 2;
-  sign_mask |= sign_mask << 4;
-  sign_mask |= sign_mask << 8;
-  sign_mask |= sign_mask << 16;
-  x = ((~sign_mask & x) + (sign_mask & ~x)) << 1;
-  
-  /* Truncate 0 from left, and return how many bits left */
-  /* Use binary search */
-  maybe_zero = x >> 16;
-  maybe_zero = !maybe_zero;
-  maybe_zero |= maybe_zero << 1;
-  maybe_zero |= maybe_zero << 2;
-  maybe_zero |= maybe_zero << 4;
-  maybe_zero |= maybe_zero << 8;
-  result += maybe_zero & 16;
+  int x = x ^ (x >> 31); // convert x to -x - 1, e.g. -8 -> 7, -4 -> 3, since they require the same bit
+  int zeroNumber = 0;
 
-  maybe_zero = x >> (24 - result);
-  maybe_zero = !maybe_zero;
-  maybe_zero |= maybe_zero << 1;
-  maybe_zero |= maybe_zero << 2;
-  maybe_zero |= maybe_zero << 4;
-  result += maybe_zero & 8;
+  int Checker = 0;
+  Checker = x >> 16;
+  Checker = !Checker;
+  zeroNumber += (Checker << 4)&16;
 
-  maybe_zero = x >> (28 - result);
-  maybe_zero = !maybe_zero;
-  maybe_zero |= maybe_zero << 1;
-  maybe_zero |= maybe_zero << 2;
-  result += maybe_zero & 4;
+  Checker = x >> (24 - zeroNumber);
+  Checker = ! Checker;
+  zeroNumber += (Checker << 3)&8;
 
-  maybe_zero = x >> (30 - result);
-  maybe_zero = !maybe_zero;
-  maybe_zero |= maybe_zero << 1;
-  result += maybe_zero & 2;
+  Checker = x >> (28 - zeroNumber);
+  Checker = !Checker;
+  zeroNumber += (Checker << 2)&4;
 
-  maybe_zero = x >> (31 - result);
-  maybe_zero = !maybe_zero;
-  result += maybe_zero & 1;
+  Checker = x >> (30 - zeroNumber);
+  Checker = !Checker;
+  zeroNumber += (Checker << 1) & 2;
 
-  first_zero = (x >> 31) & 1;
-  first_zero |= first_zero << 1;
-  first_zero |= first_zero << 2;
-  first_zero |= first_zero << 4;
-  first_zero |= first_zero << 8;
-  first_zero |= first_zero << 16;
+  Checker = x >> (31 - zeroNumber);
+  Checker = !Checker;
+  zeroNumber += Checker & 1;
 
-  is_zero = !(x | 0);
+  int is_zero = !(x | 0);
   is_zero |= is_zero << 1;
   is_zero |= is_zero << 2;
   is_zero |= is_zero << 4;
   is_zero |= is_zero << 8;
   is_zero |= is_zero << 16;
 
-  return ((32 - result) & ~first_zero & ~is_zero) | 
-          (32 & first_zero & ~is_zero) | (is_zero & 1);
+  return ((32 - zeroNumber + 1) & ~is_zero) | (is_zero & 1);
 }
 //float
 /* 
